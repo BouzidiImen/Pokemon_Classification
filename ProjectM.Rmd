@@ -1,5 +1,7 @@
 ---
 title: "Pokemon Characteristics and Classification"
+author: "Imen Bouzidi"
+date: "11/3/2019"
 output:
  html_document:
     theme: united
