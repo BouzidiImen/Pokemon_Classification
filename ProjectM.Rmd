@@ -1,0 +1,51 @@
+---
+title: "Pokemon Characteristics and Classification"
+output:
+ html_document:
+    theme: united
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## Data Set:
+
+Pokemon dataset contains information on a total of 802 Pokemon.
+
+it includes:
+
+* The English name of the Pokemon
+* percentage_male: The percentage of the species that are male. Blank if the Pokemon is genderless.
+* height_m: Height of the Pokemon in metres
+* weight_kg: The Weight of the Pokemon in kilograms
+* hp: The Base HP of the Pokemon
+* attack: The Base Attack of the Pokemon
+* defense: The Base Defense of the Pokemon
+* speed: The Base Speed of the Pokemon
+* base_egg_steps: The number of steps required to hatch an egg of the Pokemon
+* base_happiness: Base Happiness of the Pokemon
+* capture_rate: Capture Rate of the Pokemon
+* experience_growth: The Experience Growth of the Pokemon
+* sp_attack: The Base Special Attack of the Pokemon
+* sp_defense: The Base Special Defense of the Pokemon
+* type1: The Primary Type of the Pokemon
+* generation: The numbered generation which the Pokemon was first introduced
+* is_legendary: Denotes if the Pokemon is legendary.
+
+
+
+Data Sources: https://www.kaggle.com/rounakbanik/pokemon/data
+
+
+```{r cars}
+D=read.csv('Pokemon.csv',header = T)
+library(DT)
+datatable(D, rownames = 1, filter="top", options = list(pageLength = 5, scrollX=T) )
+summary(D)
+```
+
+
+

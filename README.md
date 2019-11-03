@@ -1,2 +1,3 @@
-# Pokemon_Classification
-Classification of an open source Pokemon Data set based on characteristics
+Pokemon Characteristics and Classification
+================
+
