@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Data Set:
 
-Pokemon dataset contains information on a total of 802 Pokemon.
+Pokemon dataset contains information on a total of 801 Pokemon.
 
 it includes:
 
@@ -33,7 +33,7 @@ it includes:
 * experience_growth: The Experience Growth of the Pokemon
 * sp_attack: The Base Special Attack of the Pokemon
 * sp_defense: The Base Special Defense of the Pokemon
-* type1: The Primary Type of the Pokemon
+* type1: The Primary Type of the Pokemon (18 type)
 * generation: The numbered generation which the Pokemon was first introduced
 * is_legendary: Denotes if the Pokemon is legendary.
 
@@ -42,12 +42,47 @@ it includes:
 Data Sources: https://www.kaggle.com/rounakbanik/pokemon/data
 
 
-```{r cars}
-D=read.csv('Pokemon.csv',header = T)
+```{r data}
+D=read.csv('Pokemon.csv',header = T,row.names = 1)
 library(DT)
 datatable(D, rownames = 1, filter="top", options = list(pageLength = 5, scrollX=T) )
 summary(D)
+
 ```
 
+## PCA on Characteristics of Pokemons:
+
+Variables from height_m to sp_defense are the quantitatives variables for the PCA.
+
+Supplementary qualitative variable are generation and 'is_legendary'. 
+
+```{r pca }
+library("FactoMineR")
+library('factoextra')
+library('missMDA')
+
+impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
+
+PcaData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))
+
+res.pca = PCA(PcaData[,1:14], graph = FALSE,quali.sup = c(13,14))
+
+head(res.pca$eig,4)
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
 
 
+```
+
+In our case, we are studying 2 dimensions (50.2% of the information).
+
+
+
+```{r carte}
+library("corrplot")
+corrplot(res.pca$var$cos2, is.corr=FALSE)
+fviz_pca_var(res.pca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),repel = T
+             )
+
+
+```
