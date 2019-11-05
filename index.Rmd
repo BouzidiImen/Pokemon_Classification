@@ -33,9 +33,8 @@ it includes:
 * experience_growth: The Experience Growth of the Pokemon
 * sp_attack: The Base Special Attack of the Pokemon
 * sp_defense: The Base Special Defense of the Pokemon
-* type1: The Primary Type of the Pokemon (18 type)
 * generation: The numbered generation which the Pokemon was first introduced
-* is_legendary: Denotes if the Pokemon is legendary.
+* is_legendary: Denotes if the Pokemon is legendary(two major classes: legendary pokemons and not legendary pokemons)
 
 
 
@@ -57,20 +56,56 @@ NbCLust will be used to determine the optimal number of clusters.
 ```{r Validation }
 library('missMDA')
 impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
-ImputData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))
-
-library('NbClust')
-res_nbclust<-NbClust( scale(ImputData),min.nc = 2, max.nc = 50, index="silhouette",method = "kmeans" )
-
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))#
+X=scale(ImputData[,1:12]) # contains charasteristics of each pokemon
+library(NbClust)
+res_nbclust<-NbClust(X,min.nc = 2, max.nc = 20, index="silhouette",method = "kmeans")
 res_nbclust$All.index
-
 ```
-
+ In the following, 2 is considered an optimal cluster's number with a silhouette index equal to 0.2238.
 
 ## Clustering Using kmeans:
 
 ```{r kmeans}
-km=kmeans(ImputData[,1:12],2)
+library("FactoMineR")
+library('factoextra')
+library('fossil')
+km=kmeans(X,2)
+
+f=fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
+f
+class=km$cluster
+ImputData=cbind(ImputData,class)
+d=data.frame(km$centers)
+rand.index(ImputData$is_legendary,class)
+
+library(plotly)
+
+
+plot_ly(
+  type = 'scatterpolar',
+  fill = 'toself',
+  mode='markers'
+) %>%
+  add_trace(
+    r = as.numeric(d[1,]),
+    theta = colnames(d),
+    name = 'Group A'
+  )%>%
+  add_trace(
+    r = as.numeric(d[2,]),
+    theta = colnames(d),
+    name = 'Group B'
+  )%>%
+  layout(
+    polar = list(
+      radialaxis = list(
+        visible = T,
+        range = c(-3,3)
+      )
+    )
+  )
+
 
 
 
@@ -86,11 +121,7 @@ Variables from height_m to sp_defense are the quantitatives variables for the PC
 Supplementary qualitative variable are generation and 'is_legendary'. 
 
 ```{r pca }
-library("FactoMineR")
-library('factoextra')
-
-
-res.pca = PCA(PcaData[,1:14], graph = FALSE,quali.sup = c(13,14))
+res.pca = PCA(ImputData[,1:14], graph = FALSE,quali.sup = c(13,14))
 
 head(res.pca$eig,4)
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
