@@ -39,7 +39,7 @@ it includes:
 
 
 
-Data Sources: https://www.kaggle.com/rounakbanik/pokemon/data
+Data are downloaded from: https://www.kaggle.com/rounakbanik/pokemon/data
 
 
 ```{r data}
@@ -50,6 +50,35 @@ summary(D)
 
 ```
 
+
+## Optimal number of clusters:
+NbCLust will be used to determine the optimal number of clusters.
+
+```{r Validation }
+library('missMDA')
+impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))
+
+library('NbClust')
+res_nbclust<-NbClust( scale(ImputData),min.nc = 2, max.nc = 50, index="silhouette",method = "kmeans" )
+
+res_nbclust$All.index
+
+```
+
+
+## Clustering Using kmeans:
+
+```{r kmeans}
+km=kmeans(ImputData[,1:12],2)
+
+
+
+```
+
+
+
+
 ## PCA on Characteristics of Pokemons:
 
 Variables from height_m to sp_defense are the quantitatives variables for the PCA.
@@ -59,11 +88,7 @@ Supplementary qualitative variable are generation and 'is_legendary'.
 ```{r pca }
 library("FactoMineR")
 library('factoextra')
-library('missMDA')
 
-impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
-
-PcaData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))
 
 res.pca = PCA(PcaData[,1:14], graph = FALSE,quali.sup = c(13,14))
 
@@ -73,8 +98,9 @@ fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
 
 ```
 
-In our case, we are studying 2 dimensions (50.2% of the information).
+In our case, we are studying 3 dimensions (60.44% of the information with an eigenvalue >1)
 
+### Visualizing the first 2 dimensions:
 
 
 ```{r carte}
