@@ -40,10 +40,25 @@ it includes:
 
 Data are downloaded from: https://www.kaggle.com/rounakbanik/pokemon/data
 
+## Packages needed:
+```{r loadlib, echo=T, results='hide', message=F, warning=F}
+
+library('DT')
+library('missMDA')
+library('NbClust')
+library("FactoMineR")
+library('factoextra')
+library('fossil')
+library("corrplot")
+library('plotly')
+
+```
+
+
+
 
 ```{r data}
 D=read.csv('Pokemon.csv',header = T,row.names = 1)
-library(DT)
 datatable(D, rownames = 1, filter="top", options = list(pageLength = 5, scrollX=T) )
 summary(D)
 
@@ -54,11 +69,10 @@ summary(D)
 NbCLust will be used to determine the optimal number of clusters.
 
 ```{r Validation }
-library('missMDA')
 impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
-ImputData=data.frame(cbind(impData[["completeObs"]],D[,16:17]))#
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))#
 X=scale(ImputData[,1:12]) # contains charasteristics of each pokemon
-library(NbClust)
+
 res_nbclust<-NbClust(X,min.nc = 2, max.nc = 20, index="silhouette",method = "kmeans")
 res_nbclust$All.index
 ```
@@ -67,19 +81,16 @@ res_nbclust$All.index
 ## Clustering Using kmeans:
 
 ```{r kmeans}
-library("FactoMineR")
-library('factoextra')
-library('fossil')
 km=kmeans(X,2)
 
-f=fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
-f
+fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
+
 class=km$cluster
 ImputData=cbind(ImputData,class)
 d=data.frame(km$centers)
-rand.index(ImputData$is_legendary,class)
 
-library(plotly)
+#rand.index(ImputData$is_legendary,class)
+
 
 
 plot_ly(
@@ -121,7 +132,7 @@ Variables from height_m to sp_defense are the quantitatives variables for the PC
 Supplementary qualitative variable are generation and 'is_legendary'. 
 
 ```{r pca }
-res.pca = PCA(ImputData[,1:14], graph = FALSE,quali.sup = c(13,14))
+res.pca = PCA(ImputData[,1:14], graph = FALSE,quali.sup = 13)
 
 head(res.pca$eig,4)
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
@@ -135,7 +146,6 @@ In our case, we are studying 3 dimensions (60.44% of the information with an eig
 
 
 ```{r carte}
-library("corrplot")
 corrplot(res.pca$var$cos2, is.corr=FALSE)
 fviz_pca_var(res.pca, col.var = "cos2",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),repel = T
