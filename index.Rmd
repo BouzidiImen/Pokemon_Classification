@@ -66,32 +66,24 @@ summary(D)
 
 
 ## Optimal number of clusters:
-NbCLust will be used to determine the optimal number of clusters.
+NbCLust will be used to determine the optimal number of clusters for the k means and for hierarchical clustering, bellow is the code:
 
 ```{r Validation }
-impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # impute missing data
-ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))#
-X=scale(ImputData[,1:12]) # contains charasteristics of each pokemon
+impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # Impute missing data
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))
+X=scale(ImputData[,1:12]) # Contains scaled charasteristics of each pokemon
 
 res_nbclust<-NbClust(X,min.nc = 2, max.nc = 20, index="silhouette",method = "kmeans")
 res_nbclust$All.index
+
 ```
- In the following, 2 is considered an optimal cluster's number with a silhouette index equal to 0.2238.
+ In the following, 3 is considered the optimal cluster's number with a silhouette index equal to 0.2342.
 
 ## Clustering Using kmeans:
 
 ```{r kmeans}
-km=kmeans(X,2)
-
-fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
-
-class=km$cluster
-ImputData=cbind(ImputData,class)
+km=kmeans(X,3)
 d=data.frame(km$centers)
-
-#rand.index(ImputData$is_legendary,class)
-
-
 
 plot_ly(
   type = 'scatterpolar',
@@ -108,6 +100,11 @@ plot_ly(
     theta = colnames(d),
     name = 'Group B'
   )%>%
+  add_trace(
+    r = as.numeric(d[3,]),
+    theta = colnames(d),
+    name = 'Group D'
+  )%>%
   layout(
     polar = list(
       radialaxis = list(
@@ -118,21 +115,18 @@ plot_ly(
   )
 
 
+fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
 
 
 ```
-
-
-
 
 ## PCA on Characteristics of Pokemons:
 
 Variables from height_m to sp_defense are the quantitatives variables for the PCA.
 
 Supplementary qualitative variable are generation and 'is_legendary'. 
-
 ```{r pca }
-res.pca = PCA(ImputData[,1:14], graph = FALSE,quali.sup = 13)
+res.pca = PCA(ImputData[,1:13], graph = FALSE,quali.sup = 13)
 
 head(res.pca$eig,4)
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
@@ -153,3 +147,18 @@ fviz_pca_var(res.pca, col.var = "cos2",
 
 
 ```
+
+
+
+
+
+```{r hier}
+d=dist(X,method = 'euclidean') # distance= "aitchison", "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
+
+hc1=hclust(d,method = 'ward.D') #method ="single", "complete", "average", "mcquitty", "ward.D", "ward.D2", "centroid" or "median"
+
+
+
+
+```
+
