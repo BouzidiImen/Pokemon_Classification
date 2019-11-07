@@ -51,6 +51,8 @@ library('factoextra')
 library('fossil')
 library("corrplot")
 library('plotly')
+library('kohonen')
+library('mclust')
 
 ```
 
@@ -70,8 +72,8 @@ Variables from height_m to sp_defense are the quantitatives variables for the PC
 Supplementary qualitative variable are generation and 'is_legendary'. 
 ```{r pca }
 impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # Impute missing data
-ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))
-res.pca = PCA(ImputData[,1:13], graph = FALSE,quali.sup = 13)
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,15:16]))
+res.pca = PCA(ImputData[,1:14], graph = FALSE,quali.sup = c(13,14))
 
 head(res.pca$eig,4)
 fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
@@ -79,7 +81,7 @@ fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
 
 ```
 
-In our case, we are studying the 3 first dimensions (60.44% variance cumulative percentage with an eigenvalue >1)
+In our case, we are studying the 2 first dimensions ( but taking three is the optimal choice with a 60.44% variance cumulative percentage and eigenvalues >1)
 
 ### Visualizing the first 2 dimensions:
 
@@ -93,6 +95,10 @@ fviz_pca_var(res.pca, col.var = "cos2",
 
 ```
 
+From the plots above (corrplot and variables plot), The first dimension represents the variables : height_m, weight_kg, hp, attack, Capture_rate(negatively), sp_attack and sp_defense while the second dimension represents especially the base_happinesss variables and experience_growth(negatively).
+
+
+Pokemons will be projected on the factor map after clustering.
 
 ## Optimal number of clusters:
 NbCLust will be used to determine the optimal number of clusters for the k means and for hierarchical clustering, bellow is the code:
@@ -110,59 +116,125 @@ res_nbclust$All.index
 ## Clustering Using kmeans:
 
 ```{r kmeans}
+
 km=kmeans(X,3)
-d=data.frame(km$centers)
-d
-plot_ly(
-  type = 'scatterpolar',
-  fill = 'toself',
-  mode='markers'
-) %>%
-  add_trace(
-    r = as.numeric(d[1,]),
-    theta = colnames(d),
-    name = 'Group A'
-  )%>%
-  add_trace(
-    r = as.numeric(d[2,]),
-    theta = colnames(d),
-    name = 'Group B'
-  )%>%
-  add_trace(
-    r = as.numeric(d[3,]),
-    theta = colnames(d),
-    name = 'Group D'
-  )%>%
-  layout(
-    polar = list(
-      radialaxis = list(
-        visible = T,
-        range = c(-3,3)
-      )
-    )
-  )
+
+fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE )+
+  scale_colour_manual(values = c("#ffa64d","#00b33c", "#ff3333"))+
+  scale_fill_manual(values = c("#ffa64d","#00b33c", "#ff3333")) 
+
+```
+
+Group 1 is characterised mainly by high score in every characteristics of dimension 1( height, weight, hp, attack, sp_attack and sp_defense). it seems that Pokemons of group1 are the most powerful Pokemons but doesn't have high values in base_happiness. 
+
+Group2 otherwise is characterised by lower values on dimension 1 but higher values on dimension 2 (having higher base happiness than group 2 (see RadarPlot)).
+
+Group 3 of Pokemons have the lowest values on the two dimensions but have a higher capture rate than other Pokemons.
 
 
-fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE, palette = "jco")
+
+
+```{r plot}
+
+Centers.km=data.frame(km$centers) #Contains the centroids of each class
+datatable(Centers.km, filter="top", options = list(pageLength = 3, scrollX=T) )
+
+plot_ly(  type = 'scatterpolar',fill = 'toself',mode='markers') %>%
+  add_trace(r = as.numeric(Centers.km[1,]),theta = colnames(Centers.km),name = 'Group 1')%>%
+  add_trace(r = as.numeric(Centers.km[2,]),theta = colnames(Centers.km),name = 'Group 2')%>%
+  add_trace(r = as.numeric(Centers.km[3,]),theta = colnames(Centers.km),name = 'Group 3')%>%
+  layout(polar = list(radialaxis = list(visible = T,range = c(-3,3))))
 
 
 ```
 
 
 
+To conslude, Group1 is the most powerful group of Pokemons, Group2 is less powerful than Group1 and Group 3 is the least powerful group of pokemons but with higher Base_happiness abd capture_rate.
 
-
-
-
-
+## Clustering using Hierarchical clusterin: 
 
 ```{r hier}
-d=dist(X,method = 'euclidean') # distance= "aitchison", "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
+d=dist(X,method = 'euclidean') 
+hc=hclust(d,method = 'ward.D') 
+classesHC=cutree(hc,k=3)# Return Classes of the hierarchical clustering
 
-hc1=hclust(d,method = 'ward.D') #method ="single", "complete", "average", "mcquitty", "ward.D", "ward.D2", "centroid" or "median"
+# function to find centroid in cluster i
+clust.centroid = function(i, dat, classes) {
+  ind = ( classes == i)
+  colMeans(dat[ind,])
+}
+Centers.hc=sapply(unique(classesHC), clust.centroid, X, classesHC)
+Centers.hc=data.frame(t(Centers.hc))
+
+table(km$cluster,classesHC)
+
+```
+Group1 of Pokemons of kmeans is mainly classified in Group3 of hierarchical clustering, Group2 is mainly classified in Group1 of hierarchical clustering(419 pokemons are in group1 and only 2 are in group3) and Group3 is divided between Group2 and Group3.
+
+```{r randind}
+rand.index(km$cluster,classesHC)
+```
+A Rand index of 0.72 indicates a similarity between kmeans results and hierarchical clustering results.
+
+```{r clustval}
 
 
+plot_ly(  type = 'scatterpolar',fill = 'toself',mode='markers') %>%
+  add_trace(r = as.numeric(Centers.hc[1,]),theta = colnames(Centers.hc),name = 'Group 1')%>%
+  add_trace(r = as.numeric(Centers.hc[2,]),theta = colnames(Centers.hc),name = 'Group 2')%>%
+  add_trace(r = as.numeric(Centers.hc[3,]),theta = colnames(Centers.hc),name = 'Group 3')%>%
+  layout(polar = list(radialaxis = list(visible = T,range = c(-3,3))))
+
+```
+
+
+Due to changes of switching Pokemons from a cluster to another in hierarchical clustering, the characteristics of the groups are mainly the same. Whereas Group2 have the loawest values of each score other than Base_happiness abd Capture_rate.
+
+## Clustering Usins SOM (Self-Organizing Map):
+
+```{r som}
+
+set.seed(7)
+
+#create SOM grid
+sommap <- som(X, grid = somgrid(3, 1, "hexagonal"))
+plot(sommap)
 
 
 ```
+
+The first Group is characterised by a high capture_rate and base_happiness while the second group of pokemons is characterised by higher scores in every other variable.
+
+The third group is characterised by low values in every variable other than base_happiness.
+
+
+```{r rand}
+
+somc=sommap$unit.classif
+table(km$cluster,somc)
+rand.index(km$cluster,somc) # to compare kmeans and Som CLustering
+
+```
+Groups of Pokemons that we obtained from Som are nearly the same as the groups we obtained with kmeans. 
+
+The rand index in this case is 0.99. 
+this proves a very good similarity between Som Clustering results and kmeans results.
+
+
+
+## Clustering Usins EM (Expectation Maximization):
+
+```{r EM}
+EMB <- Mclust(X)
+
+summary(EMB)
+summary(EMB$BIC)
+
+
+```
+
+
+
+
 
