@@ -1,5 +1,5 @@
 ---
-title: "Pokemon Characteristics and Classification"
+title: "Pokemons Classification based on Characteristics"
 author: "Imen Bouzidi"
 date: "11/3/2019"
 output:
