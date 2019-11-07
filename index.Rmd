@@ -63,6 +63,33 @@ datatable(D, rownames = 1, filter="top", options = list(pageLength = 5, scrollX=
 summary(D)
 
 ```
+## PCA on Characteristics of Pokemons:
+
+Variables from height_m to sp_defense are the quantitatives variables for the PCA.
+
+Supplementary qualitative variable are generation and 'is_legendary'. 
+```{r pca }
+res.pca = PCA(ImputData[,1:13], graph = FALSE,quali.sup = 13)
+
+head(res.pca$eig,4)
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
+
+
+```
+
+In our case, we are studying the 3 first dimensions (60.44% variance cumulative percentage with an eigenvalue >1)
+
+### Visualizing the first 2 dimensions:
+
+
+```{r carte}
+corrplot(res.pca$var$cos2, is.corr=FALSE)
+fviz_pca_var(res.pca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),repel = T
+             )
+
+
+```
 
 
 ## Optimal number of clusters:
@@ -84,7 +111,7 @@ res_nbclust$All.index
 ```{r kmeans}
 km=kmeans(X,3)
 d=data.frame(km$centers)
-
+View(d)
 plot_ly(
   type = 'scatterpolar',
   fill = 'toself',
@@ -120,33 +147,9 @@ fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE
 
 ```
 
-## PCA on Characteristics of Pokemons:
-
-Variables from height_m to sp_defense are the quantitatives variables for the PCA.
-
-Supplementary qualitative variable are generation and 'is_legendary'. 
-```{r pca }
-res.pca = PCA(ImputData[,1:13], graph = FALSE,quali.sup = 13)
-
-head(res.pca$eig,4)
-fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))
 
 
-```
 
-In our case, we are studying 3 dimensions (60.44% of the information with an eigenvalue >1)
-
-### Visualizing the first 2 dimensions:
-
-
-```{r carte}
-corrplot(res.pca$var$cos2, is.corr=FALSE)
-fviz_pca_var(res.pca, col.var = "cos2",
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),repel = T
-             )
-
-
-```
 
 
 
