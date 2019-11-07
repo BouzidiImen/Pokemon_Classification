@@ -69,6 +69,8 @@ Variables from height_m to sp_defense are the quantitatives variables for the PC
 
 Supplementary qualitative variable are generation and 'is_legendary'. 
 ```{r pca }
+impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # Impute missing data
+ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))
 res.pca = PCA(ImputData[,1:13], graph = FALSE,quali.sup = 13)
 
 head(res.pca$eig,4)
@@ -96,8 +98,7 @@ fviz_pca_var(res.pca, col.var = "cos2",
 NbCLust will be used to determine the optimal number of clusters for the k means and for hierarchical clustering, bellow is the code:
 
 ```{r Validation }
-impData=imputePCA(D[,3:14], ncp = 2, scale = TRUE, method = c("Regularized","EM")) # Impute missing data
-ImputData=data.frame(cbind(impData[["completeObs"]],D[,15]))
+
 X=scale(ImputData[,1:12]) # Contains scaled charasteristics of each pokemon
 
 res_nbclust<-NbClust(X,min.nc = 2, max.nc = 20, index="silhouette",method = "kmeans")
@@ -111,7 +112,7 @@ res_nbclust$All.index
 ```{r kmeans}
 km=kmeans(X,3)
 d=data.frame(km$centers)
-View(d)
+d
 plot_ly(
   type = 'scatterpolar',
   fill = 'toself',
