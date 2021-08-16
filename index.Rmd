@@ -223,7 +223,7 @@ this proves a very good similarity between Som Clustering results and kmeans res
 
 
 
-## Clustering Usins EM (Expectation Maximization):
+## Clustering Using EM (Expectation Maximization):
 
 ```{r EM}
 EMB <- Mclust(X)
