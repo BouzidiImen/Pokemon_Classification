@@ -125,9 +125,9 @@ fviz_cluster(list(data = X, cluster = km$cluster), geom = "point", stand = FALSE
 
 ```
 
-Group 1 is characterised mainly by high score in every characteristics of dimension 1( height, weight, hp, attack, sp_attack and sp_defense). it seems that Pokemons of group1 are the most powerful Pokemons but doesn't have high values in base_happiness. 
+Group 1 is characterised mainly by high score in every characteristics of dimension 1( height, weight, hp, attack, sp_attack and sp_defense). It seems that Pokemons of group1 are the most powerful Pokemons but don't have high values in base_happiness. 
 
-Group2 otherwise is characterised by lower values on dimension 1 but higher values on dimension 2 (having higher base happiness than group 2 (see RadarPlot)).
+Group2 is characterised by lower values on dimension 1 but higher values on dimension 2 (having higher base happiness than group 2 (see RadarPlot)).
 
 Group 3 of Pokemons have the lowest values on the two dimensions but have a higher capture rate than other Pokemons.
 
@@ -150,9 +150,9 @@ plot_ly(  type = 'scatterpolar',fill = 'toself',mode='markers') %>%
 
 
 
-To conslude, Group1 is the most powerful group of Pokemons, Group2 is less powerful than Group1 and Group 3 is the least powerful group of pokemons but with higher Base_happiness abd capture_rate.
+To conclude, Group1 is the most powerful group of Pokemons, Group2 is less powerful than Group1 and Group 3 is the least powerful group of pokemons but with higher Base_happiness and capture_rate.
 
-## Clustering using Hierarchical clusterin: 
+## Clustering using Hierarchical clustering: 
 
 ```{r hier}
 d=dist(X,method = 'euclidean') 
